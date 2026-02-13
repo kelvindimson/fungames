@@ -12,7 +12,7 @@
     "test": "jest --watchAll=false",
     "db-gen": "drizzle-kit generate",
     "db-gen-name": "npx drizzle-kit generate --name",
-    "db-migrate": "node -r esbuild-register ./db/migrate.ts",
+    "db-migrate": "node ./db/migrate.mjs",
     "db-seed": "tsx db/seed.ts",
     "db-drop": "drizzle-kit drop --out=./db/migrations",
     "clear-cache": "npm cache clean --force",
