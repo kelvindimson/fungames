@@ -1,25 +1,27 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { GuessGrid } from "@/components/game/GuessGrid";
+import { useCallback, useEffect, useRef,useState } from "react";
+
+import { CountdownOverlay } from "@/components/game/CountdownOverlay";
 import { GameInput } from "@/components/game/GameInput";
+import { GuessGrid } from "@/components/game/GuessGrid";
 import { Leaderboard } from "@/components/game/Leaderboard";
 import { TimerBar } from "@/components/game/TimerBar";
-import { CountdownOverlay } from "@/components/game/CountdownOverlay";
 import {
-  getFeedback,
   deobfuscate,
-  TOTAL_ROUNDS,
+  generatePlayerId,
+  getFeedback,
   MAX_GUESSES,
+  POLL_MS,
   ROUND_TIME,
   SCORE_MAP,
-  POLL_MS,
-  generatePlayerId,
+  TOTAL_ROUNDS,
 } from "@/lib/game-logic";
+import type { GameState, Player } from "@/lib/types";
+import { useSound } from "@/lib/use-sound";
 // ROUND_TIME is the fallback default; actual roundTime comes from game state
 import { VALID_WORDS } from "@/lib/words";
-import type { GameState, Player } from "@/lib/types";
 
 const C = {
   bg: "#0b0e1a",
@@ -71,6 +73,7 @@ export default function GamePage() {
   const [err, setErr] = useState("");
   const [shake, setShake] = useState(false);
   const [flash, setFlash] = useState("");
+  const snd = useSound();
 
   const solvedR = useRef(false);
   const gcR = useRef(0);
@@ -116,7 +119,10 @@ export default function GamePage() {
           0,
           rt - Math.floor((Date.now() - roundStart) / 1000)
         );
-        setTimeLeft(rem);
+        setTimeLeft((prev) => {
+          if (rem !== prev && rem > 0 && rem <= 5) snd.warn();
+          return rem;
+        });
         if (rem <= 0) {
           clearInterval(timerR.current!);
           if (!solvedR.current && !roundEndedR.current) {
@@ -126,7 +132,7 @@ export default function GamePage() {
         }
       }, 250);
     },
-    [submitScore]
+    [submitScore, snd]
   );
 
   // Trigger countdown
@@ -141,10 +147,12 @@ export default function GamePage() {
       gcR.current = 0;
       setCdNum(3);
       setScreen("countdown");
-      setTimeout(() => setCdNum(2), 1000);
-      setTimeout(() => setCdNum(1), 2000);
+      snd.tick();
+      setTimeout(() => { setCdNum(2); snd.tick(); }, 1000);
+      setTimeout(() => { setCdNum(1); snd.tick(); }, 2000);
       setTimeout(() => {
         setCdNum(0);
+        snd.go();
         setTimeout(() => {
           setCdNum(null);
           setScreen("playing");
@@ -152,7 +160,7 @@ export default function GamePage() {
         }, 500);
       }, 3000);
     },
-    [startTimer]
+    [startTimer, snd]
   );
 
   // Polling
@@ -183,10 +191,12 @@ export default function GamePage() {
           }
           if (g.status === "roundEnd") {
             if (timerR.current) clearInterval(timerR.current);
+            snd.roundEnd();
             setScreen("roundResult");
           }
           if (g.status === "gameOver") {
             if (timerR.current) clearInterval(timerR.current);
+            snd.gameOver();
             setScreen("gameOver");
           }
         }
@@ -212,7 +222,7 @@ export default function GamePage() {
     return () => {
       if (pollR.current) clearInterval(pollR.current);
     };
-  }, [code, pid, triggerCD, startTimer]);
+  }, [code, pid, triggerCD, startTimer, snd]);
 
   // Cleanup timer on unmount
   useEffect(() => {
@@ -255,6 +265,7 @@ export default function GamePage() {
     if (!VALID_WORDS.has(g)) {
       setShake(true);
       setErr("Not a valid word!");
+      snd.wrong();
       setTimeout(() => {
         setShake(false);
         setErr("");
@@ -274,13 +285,15 @@ export default function GamePage() {
       setSolved(true);
       solvedR.current = true;
       setFlash("green");
+      snd.correct();
       setTimeout(() => setFlash(""), 800);
       await submitScore(SCORE_MAP[ng.length] || 10);
     } else if (ng.length >= MAX_GUESSES) {
       roundEndedR.current = true;
+      snd.wrong();
       await submitScore(0);
     }
-  }, [input, guesses, fbs, solved, timeLeft, firstLetter, answer, submitScore]);
+  }, [input, guesses, fbs, solved, timeLeft, firstLetter, answer, submitScore, snd]);
 
   // Build round scores map
   const rsMap: Record<string, number> = {};
@@ -347,10 +360,31 @@ export default function GamePage() {
             color: C.txtM,
             marginTop: 4,
             letterSpacing: 1,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 10,
           }}
         >
-          CODE:{" "}
-          <span style={{ color: C.gold, fontWeight: 800 }}>{code}</span>
+          <span>
+            CODE:{" "}
+            <span style={{ color: C.gold, fontWeight: 800 }}>{code}</span>
+          </span>
+          <button
+            onClick={snd.toggle}
+            style={{
+              background: "none",
+              border: `1px solid ${C.bdr}`,
+              borderRadius: 6,
+              padding: "2px 6px",
+              cursor: "pointer",
+              fontSize: 14,
+              lineHeight: 1,
+            }}
+            title={snd.muted ? "Unmute" : "Mute"}
+          >
+            {snd.muted ? "\uD83D\uDD07" : "\uD83D\uDD0A"}
+          </button>
         </div>
       </div>
 

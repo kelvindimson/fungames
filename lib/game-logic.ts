@@ -1,3 +1,5 @@
+import { ulid } from "ulid";
+
 import { ANSWER_WORDS } from "./words";
 
 export const TOTAL_ROUNDS = 8;
@@ -59,5 +61,5 @@ export function generateCode(): string {
 }
 
 export function generatePlayerId(): string {
-  return Math.random().toString(36).substring(2, 10);
+  return ulid();
 }
