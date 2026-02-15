@@ -1,0 +1,2 @@
+All shared constants go here.
+we can also group constants into game-specific folders if we need to.

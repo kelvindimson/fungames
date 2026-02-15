@@ -1,0 +1,2 @@
+All shared services go here.
+we can also group services into game-specific folders if we need to.

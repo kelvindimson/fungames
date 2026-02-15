@@ -1,0 +1,20 @@
+This is where we put specific games. 
+Each game can have its own folder with its own components, hooks, models, and constants. We can also have shared components, hooks, models, and constants that can be used across multiple games. This way we can keep our code organized and modular.
+
+Example structure:
+├── games/                                 # ★ GAME PLUGINS — each game is self-contained
+│   ├── _registry.ts                       # ★ Master game registry + feature flags
+│   │
+│   ├── lingo/
+│   │   ├── index.ts                       # Game manifest (exports config, components, handlers)
+│   │   ├── config.ts                      # Game metadata (name, slug, description, players, category)
+│   │   ├── types.ts                       # Lingo-specific types (LingoState, LingoRound)
+│   │   ├── logic.ts                       # Pure game logic (word feedback, scoring, round mgmt)
+│   │   ├── words.ts                       # Word bank
+│   │   ├── actions.ts                     # Server action handlers (startRound, submitGuess, endRound)
+│   │   ├── GameView.tsx                   # Main game component (mounted by dynamic page)
+│   │   └── components/                    # Lingo-specific UI
+│   │       ├── Tile.tsx
+│   │       ├── GuessRow.tsx
+│   │       ├── GuessGrid.tsx
+│   │       └── GameInput.tsx

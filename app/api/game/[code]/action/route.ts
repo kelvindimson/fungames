@@ -1,7 +1,8 @@
+import { and, eq, sql } from "drizzle-orm";
 import { NextResponse } from "next/server";
+
 import { db } from "@/db";
 import { games, players, rounds } from "@/db/schema";
-import { eq, and, sql } from "drizzle-orm";
 import { TOTAL_ROUNDS } from "@/lib/game-logic";
 
 export async function POST(

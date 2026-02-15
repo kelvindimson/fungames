@@ -1,0 +1,2 @@
+All shared hooks go here.
+we can also group hooks into game-specific folders if we need to.

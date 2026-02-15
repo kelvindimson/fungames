@@ -1,0 +1,2 @@
+All shared libraries and utilities go here.
+we can also group into game-specific folders if we need to.

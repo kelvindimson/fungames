@@ -1,0 +1,2 @@
+All shared models go here.
+we can also group models into game-specific folders if we need to.

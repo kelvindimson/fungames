@@ -1,0 +1,2 @@
+All shared stores go here.
+we can also group stores into game-specific folders if we need to.
